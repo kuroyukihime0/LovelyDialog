@@ -3,6 +3,7 @@ package com.yarolegovich.lovelydialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -37,7 +38,8 @@ public class LovelyCustomDialog extends AbsLovelyDialog<LovelyCustomDialog> {
         return this;
     }
 
-    public LovelyCustomDialog configureView(ViewConfigurator configurator) {
+    @Override
+    public LovelyCustomDialog configureView(@NonNull ViewConfigurator<View> configurator) {
         if (addedView == null) {
             throw new IllegalStateException(string(R.string.ex_msg_dialog_view_not_set));
         }
@@ -53,9 +55,7 @@ public class LovelyCustomDialog extends AbsLovelyDialog<LovelyCustomDialog> {
         if (addedView == null) {
             throw new IllegalStateException(string(R.string.ex_msg_dialog_view_not_set));
         }
-        View.OnClickListener clickListener = dismissOnClick ?
-                new CloseOnClickDecorator(listener) :
-                listener;
+        View.OnClickListener clickListener = new ClickListenerDecorator(listener, dismissOnClick);
         findView(viewId).setOnClickListener(clickListener);
         return this;
     }
@@ -82,12 +82,10 @@ public class LovelyCustomDialog extends AbsLovelyDialog<LovelyCustomDialog> {
         return R.layout.dialog_custom;
     }
 
-    public interface ViewConfigurator {
-        void configureView(View v);
-    }
 
     public interface InstanceStateManager {
         void saveInstanceState(Bundle outState);
+
         void restoreInstanceState(Bundle savedState);
     }
 }

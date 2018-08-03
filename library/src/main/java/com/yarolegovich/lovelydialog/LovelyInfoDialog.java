@@ -34,7 +34,7 @@ public class LovelyInfoDialog extends AbsLovelyDialog<LovelyInfoDialog> {
     {
         cbDontShowAgain = findView(R.id.ld_cb_dont_show_again);
         confirmButton = findView(R.id.ld_btn_confirm);
-        confirmButton.setOnClickListener(new CloseOnClickDecorator(null));
+        confirmButton.setOnClickListener(new ClickListenerDecorator(null, true));
         infoDialogId = -1;
     }
 
@@ -49,6 +49,11 @@ public class LovelyInfoDialog extends AbsLovelyDialog<LovelyInfoDialog> {
                 dismiss();
             }
         });
+        return this;
+    }
+
+    public LovelyInfoDialog setNotShowAgainOptionChecked(boolean defaultChecked) {
+        cbDontShowAgain.setChecked(defaultChecked);
         return this;
     }
 

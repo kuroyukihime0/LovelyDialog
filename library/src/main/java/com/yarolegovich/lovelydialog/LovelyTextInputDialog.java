@@ -2,6 +2,7 @@ package com.yarolegovich.lovelydialog;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -19,7 +20,7 @@ public class LovelyTextInputDialog extends AbsLovelyDialog<LovelyTextInputDialog
 
     private EditText inputField;
     private TextView errorMessage;
-    private TextView confirmButton;
+    private TextView confirmButton, negativeButton;
 
     private TextFilter filter;
 
@@ -33,9 +34,15 @@ public class LovelyTextInputDialog extends AbsLovelyDialog<LovelyTextInputDialog
 
     {
         confirmButton = findView(R.id.ld_btn_confirm);
+        negativeButton = findView(R.id.ld_btn_negative);
         inputField = findView(R.id.ld_text_input);
         errorMessage = findView(R.id.ld_error_message);
         inputField.addTextChangedListener(new HideErrorOnTextChanged());
+    }
+
+    public LovelyTextInputDialog configureEditText(@NonNull ViewConfigurator<EditText> viewConfigurator) {
+        viewConfigurator.configureView(inputField);
+        return this;
     }
 
     public LovelyTextInputDialog setConfirmButton(@StringRes int text, OnTextInputConfirmListener listener) {
@@ -50,6 +57,22 @@ public class LovelyTextInputDialog extends AbsLovelyDialog<LovelyTextInputDialog
 
     public LovelyTextInputDialog setConfirmButtonColor(int color) {
         confirmButton.setTextColor(color);
+        return this;
+    }
+
+    public LovelyTextInputDialog setNegativeButton(@StringRes int text, View.OnClickListener listener){
+        return setNegativeButton(string(text), listener);
+    }
+
+    public LovelyTextInputDialog setNegativeButton(String text, View.OnClickListener listener){
+        negativeButton.setVisibility(View.VISIBLE);
+        negativeButton.setText(text);
+        negativeButton.setOnClickListener(new ClickListenerDecorator(listener, true));
+        return this;
+    }
+
+    public LovelyTextInputDialog setNegativeButtonColor(int color) {
+        negativeButton.setTextColor(color);
         return this;
     }
 

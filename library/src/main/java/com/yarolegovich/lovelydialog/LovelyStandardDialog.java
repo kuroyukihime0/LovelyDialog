@@ -3,9 +3,9 @@ package com.yarolegovich.lovelydialog;
 import android.content.Context;
 import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
+import android.support.annotation.LayoutRes;
 import android.support.annotation.Nullable;
 import android.support.annotation.StringRes;
-import android.support.v4.content.ContextCompat;
 import android.view.View;
 import android.widget.Button;
 
@@ -15,6 +15,7 @@ import static android.view.View.*;
  * Created by yarolegovich on 16.04.2016.
  * If null is passed instead on click listener - dialog will be just closed on click.
  */
+@SuppressWarnings("WeakerAccess")
 public class LovelyStandardDialog extends AbsLovelyDialog<LovelyStandardDialog> {
 
     public static final int POSITIVE_BUTTON = R.id.ld_btn_yes;
@@ -33,6 +34,15 @@ public class LovelyStandardDialog extends AbsLovelyDialog<LovelyStandardDialog> 
         super(context, theme);
     }
 
+    public LovelyStandardDialog(Context context, ButtonLayout buttonLayout) {
+        super(context, 0, buttonLayout.layoutRes);
+    }
+
+    public LovelyStandardDialog(Context context, int theme, ButtonLayout buttonLayout) {
+        super(context, theme, buttonLayout.layoutRes);
+    }
+
+
     {
         positiveButton = findView(R.id.ld_btn_yes);
         negativeButton = findView(R.id.ld_btn_no);
@@ -46,7 +56,7 @@ public class LovelyStandardDialog extends AbsLovelyDialog<LovelyStandardDialog> 
     public LovelyStandardDialog setPositiveButton(String text, @Nullable OnClickListener listener) {
         positiveButton.setVisibility(VISIBLE);
         positiveButton.setText(text);
-        positiveButton.setOnClickListener(new CloseOnClickDecorator(listener));
+        positiveButton.setOnClickListener(new ClickListenerDecorator(listener, true));
         return this;
     }
 
@@ -65,7 +75,7 @@ public class LovelyStandardDialog extends AbsLovelyDialog<LovelyStandardDialog> 
     public LovelyStandardDialog setNegativeButton(String text, @Nullable OnClickListener listener) {
         negativeButton.setVisibility(VISIBLE);
         negativeButton.setText(text);
-        negativeButton.setOnClickListener(new CloseOnClickDecorator(listener));
+        negativeButton.setOnClickListener(new ClickListenerDecorator(listener, true));
         return this;
     }
 
@@ -84,7 +94,7 @@ public class LovelyStandardDialog extends AbsLovelyDialog<LovelyStandardDialog> 
     public LovelyStandardDialog setNeutralButton(String text, @Nullable OnClickListener listener) {
         neutralButton.setVisibility(VISIBLE);
         neutralButton.setText(text);
-        neutralButton.setOnClickListener(new CloseOnClickDecorator(listener));
+        neutralButton.setOnClickListener(new ClickListenerDecorator(listener, true));
         return this;
     }
 
@@ -104,9 +114,7 @@ public class LovelyStandardDialog extends AbsLovelyDialog<LovelyStandardDialog> 
     }
 
     public LovelyStandardDialog setOnButtonClickListener(boolean closeOnClick, View.OnClickListener listener) {
-        View.OnClickListener clickHandler = closeOnClick ?
-                new CloseOnClickDecorator(listener) :
-                listener;
+        View.OnClickListener clickHandler = new ClickListenerDecorator(listener, closeOnClick);
         positiveButton.setOnClickListener(clickHandler);
         neutralButton.setOnClickListener(clickHandler);
         negativeButton.setOnClickListener(clickHandler);
@@ -150,6 +158,15 @@ public class LovelyStandardDialog extends AbsLovelyDialog<LovelyStandardDialog> 
 
     @Override
     protected int getLayout() {
-        return R.layout.dialog_standard;
+        return ButtonLayout.HORIZONTAL.layoutRes;
+    }
+
+    public enum ButtonLayout {
+        HORIZONTAL(R.layout.dialog_standard),
+        VERTICAL(R.layout.dialog_standard_vertical);
+        final @LayoutRes int layoutRes;
+        ButtonLayout(@LayoutRes int layoutRes) {
+            this.layoutRes = layoutRes;
+        }
     }
 }

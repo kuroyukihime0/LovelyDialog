@@ -2,6 +2,7 @@ package com.yarolegovich.lovelydialog;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -9,6 +10,7 @@ import android.support.annotation.ColorInt;
 import android.support.annotation.ColorRes;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.StringRes;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
@@ -20,7 +22,7 @@ import android.widget.TextView;
 /**
  * Created by yarolegovich on 16.04.2016.
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({"unchecked", "WeakerAccess"})
 public abstract class AbsLovelyDialog<T extends AbsLovelyDialog> {
 
     private static final String KEY_SAVED_STATE_TOKEN = "key_saved_state_token";
@@ -34,15 +36,26 @@ public abstract class AbsLovelyDialog<T extends AbsLovelyDialog> {
     private TextView messageView;
 
     public AbsLovelyDialog(Context context) {
-        init(new AlertDialog.Builder(context));
+        this(context, 0);
     }
 
     public AbsLovelyDialog(Context context, int theme) {
-        init(new AlertDialog.Builder(context, theme));
+        this(context, theme, 0);
     }
 
-    private void init(AlertDialog.Builder dialogBuilder) {
-        dialogView = LayoutInflater.from(dialogBuilder.getContext()).inflate(getLayout(), null);
+    public AbsLovelyDialog(Context context, int theme, int layoutRes) {
+        if (layoutRes == 0) {
+            layoutRes = getLayout();
+        }
+        if (theme == 0) {
+            init(new AlertDialog.Builder(context), layoutRes);
+        } else {
+            init(new AlertDialog.Builder(context, theme), layoutRes);
+        }
+    }
+
+    private void init(AlertDialog.Builder dialogBuilder, @LayoutRes int res) {
+        dialogView = LayoutInflater.from(dialogBuilder.getContext()).inflate(res, null);
         dialog = dialogBuilder.setView(dialogView).create();
 
         iconView = findView(R.id.ld_icon);
@@ -53,6 +66,21 @@ public abstract class AbsLovelyDialog<T extends AbsLovelyDialog> {
 
     @LayoutRes
     protected abstract int getLayout();
+
+    public T configureView(@NonNull ViewConfigurator<View> viewViewConfigurator) {
+        viewViewConfigurator.configureView(dialogView);
+        return (T) this;
+    }
+
+    public T configureTitleView(@NonNull ViewConfigurator<TextView> viewConfigurator) {
+        viewConfigurator.configureView(titleView);
+        return (T) this;
+    }
+
+    public T configureMessageView(@NonNull ViewConfigurator<TextView> viewConfigurator) {
+        viewConfigurator.configureView(messageView);
+        return (T) this;
+    }
 
     public T setMessage(@StringRes int message) {
         return setMessage(string(message));
@@ -198,20 +226,30 @@ public abstract class AbsLovelyDialog<T extends AbsLovelyDialog> {
         return (ViewClass) dialogView.findViewById(id);
     }
 
-    protected class CloseOnClickDecorator implements View.OnClickListener {
+    protected class ClickListenerDecorator implements View.OnClickListener {
 
         private View.OnClickListener clickListener;
+        private boolean closeOnClick;
 
-        protected CloseOnClickDecorator(View.OnClickListener clickListener) {
+        protected ClickListenerDecorator(View.OnClickListener clickListener, boolean closeOnClick) {
             this.clickListener = clickListener;
+            this.closeOnClick = closeOnClick;
         }
 
         @Override
         public void onClick(View v) {
             if (clickListener != null) {
-                clickListener.onClick(v);
+                if (clickListener instanceof LovelyDialogCompat.DialogOnClickListenerAdapter) {
+                    LovelyDialogCompat.DialogOnClickListenerAdapter listener =
+                            (LovelyDialogCompat.DialogOnClickListenerAdapter) clickListener;
+                    listener.onClick(dialog, v.getId());
+                } else {
+                    clickListener.onClick(v);
+                }
             }
-            dismiss();
+            if (closeOnClick) {
+                dismiss();
+            }
         }
     }
 }
